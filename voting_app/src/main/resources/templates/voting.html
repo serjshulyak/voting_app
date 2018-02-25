@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head lang="en">
+<meta charset="UTF-8" />
+<title>Application for voting</title>
+
+<link rel="stylesheet" th:href="@{/css/bootstrap.min.css}" />
+<link rel="stylesheet" th:href="@{/css/custom.css}" />
+<script type="text/javascript"
+	src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<style>
+table{
+color: black;
+    background: wheat;
+    text-align: center;
+    width: 100%;
+}
+body {
+	color: black;
+}
+
+a {
+	display: block;
+}
+
+td {
+	border: 1px solid black;
+	padding: 10px;
+	text-align: center;
+}
+
+td:nth-child(1) {
+	text-align: left;
+}
+
+.votes {
+	background: black;
+	background: #b9b9ce;
+	padding: 5px;
+	float: right;
+	margin-right: 70%;
+}
+</style>
+</head>
+
+<body>
+	<script th:inline="javascript">
+/*<![CDATA[*/
+	function vote( id){
+
+		$.ajax({
+		    url: 'http://localhost:8080/api/increment_vote',
+		    type: 'PUT',
+		    data: {answer_id:id},
+		    success: function(result) {
+		    	update();
+		    }
+		});
+	}
+	function update(){
+		var voting_url = /*[[${voting_url}]]*/ ;
+		$("#table tr").remove(); 
+		$.getJSON("http://localhost:8080/api/"+voting_url+ "/get_voting", { },
+		         function(data) {
+				console.dir(data);
+				$('#subject').html(data.subject.text)
+				$('#question').html(data.question)
+				
+				if(data.enabled == true){
+					$('#state').html("<div style='color:blue;'> Active </div>")
+				}else{
+					$('#state').html("<div style='color:red;'> Closed </div>")
+				}
+				
+				for(var tmp of data.answers){
+					console.dir(tmp)
+					var table = document.getElementById("table");
+				    var row = table.insertRow(0);
+				    var cell1 = row.insertCell(0);
+				    var cell2 = row.insertCell(1);
+					    
+				    cell1.innerHTML = tmp.answer_text;
+				    cell2.innerHTML = tmp.answer_votes;
+				    
+				    if(data.enabled == true){
+				    	var cell3 = row.insertCell(2);
+				    	cell3.innerHTML = "<input type='button' value='vote' onclick= vote("+ tmp.answer_id + ") ></input>";
+				    }
+				}
+		});
+	}
+	window.onload = function(){
+		update();
+	};
+
+/*]]>*/
+</script>
+
+<div style="width: 100%;text-align: center;background: aliceblue;padding: 5px;">
+		Subject is: <span id="subject"></span>
+</div>
+	<div style="width: 100%;text-align: center;background: #91afca;padding: 5px;">
+		Question is: <span id="question"></span>
+	</div>
+	<div style= "text-align:center;background: #dde6d3;">
+	<div id="state"> </div>
+	<div>Select your option</div>
+
+	<div id="holder"></div>
+
+	<table id="table" style="color: black; background: wheat;">
+		<thead></thead>
+		<tbody>
+		</tbody>
+	</table>
+	</div>
+</body>
+
+<a href="http://localhost:8080/" style="padding: 10px;width: 100%;background: #343440;">HOME</a>
+</html>
+

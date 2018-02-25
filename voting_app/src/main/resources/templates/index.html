@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head lang="en">
+<meta charset="UTF-8" />
+<title>Application for voting</title>
+
+<link rel="stylesheet" th:href="@{/css/bootstrap.min.css}" />
+<link rel="stylesheet" th:href="@{/css/custom.css}" />
+<script type="text/javascript"
+	src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<style>
+body {
+	color: black;
+}
+
+a {
+	display: block;
+}
+#votings{
+    background: #d7dabd;
+    padding-left: 20px;
+}
+#subjects_list{
+    background: #ced2ac;
+    padding-left: 20px;
+}
+#votings a{
+
+}
+.my-1{
+	padding: 5px;
+}
+</style>
+</head>
+
+<body>
+	<script>
+	function showSubjects(){
+		$.getJSON("http://localhost:8080/api/all_subjects",
+         function(data) {
+               
+			$('#subjects_list').html('');
+            for(var dt of data){
+            	console.dir(dt); 
+            	var a = document.createElement('a');
+            	var linkText = document.createTextNode(dt.text);
+            	a.appendChild(linkText);
+            	a.title = dt.text;
+            	a.href = "http://localhost:8080/subject_"+dt.subject_id;         	
+            	$('#subjects_list').append(a);
+            }
+          });  
+	}
+	
+	function AddSubject(){
+		var subject = prompt("Please enter new subject: ");
+		$.post( "http://localhost:8080/api/create_subject",{ title: subject }, function( data ) {
+			showSubjects();
+		})		
+	}
+	
+	window.onload = function(){
+		$.getJSON("http://localhost:8080/api/all_votings",
+		         function(data) {
+			$('#votings').html('');
+            for(var dt of data){
+            	console.dir(dt); 
+            	var a = document.createElement('a');
+            	var linkText = document.createTextNode(dt[0]);
+            	a.appendChild(linkText);
+            	a.title = dt[0];
+            	a.href = "http://localhost:8080/votings/"+dt[1];     
+            	
+            	$('#votings').append(a);
+            }
+		
+		});
+	};
+</script>
+
+	<div class="col-auto my-1">
+		<button type="button" class="btn btn-primary" onclick="showSubjects()">Show
+			all subjects</button>
+	</div>
+	<table id="subjects_table" style="color: black; background: wheat;">
+		<thead></thead>
+		<tbody>
+		</tbody>
+	</table>
+	<div id="subjects_list"></div>
+
+	<div class="col-auto my-1">
+		<button type="button" class="btn btn-primary" onclick="AddSubject()">AddSubject</button>
+	</div>
+
+	<label style="background: beige;width: 100%;text-align: center;padding: 3px;"> Votings list </label>
+	<div id="votings"></div>
+
+</body>
+</html>
+

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head lang="en">
+<meta charset="UTF-8" />
+<title>Application for voting</title>
+
+<link rel="stylesheet" th:href="@{/css/bootstrap.min.css}" />
+<link rel="stylesheet" th:href="@{/css/custom.css}" />
+<link rel="stylesheet"
+	href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
+
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<style>
+body {
+	color: black;
+}
+
+a {
+	display: block;
+}
+
+.title {
+	font-size: 15pt;
+	text-align: center;
+	border: 1px solid black;
+	background: beige;
+}
+
+td, th {
+	border: 1px solid black;
+	padding: 10px;
+	text-align: center;
+}
+</style>
+</head>
+
+<body>
+	<script th:inline="javascript">
+/*<![CDATA[*/
+
+var id = /*[[${subject_id}]]*/ ;
+function update(){
+	$.getJSON("http://localhost:8080/api/subject_votings", { subject_id:id },
+	 function(data) {
+		$("#table tbody").html("");
+		var row = 0;
+		for(let voting of data){
+			var tbody = document.querySelector('#table tbody');
+		    var row = tbody.insertRow(row);
+		    var cell1 = row.insertCell(0);
+		    var cell2 = row.insertCell(1);
+		    var cell3 = row.insertCell(2);
+		    var cell4 = row.insertCell(3);
+		    var cell5 = row.insertCell(4);
+		    var cell6 = row.insertCell(5);
+		    var cell7 = row.insertCell(6);
+		    row++;
+			    
+		    cell1.innerHTML = voting.question;
+		    
+		    var str = ""
+		    for(var answer of voting.answers){
+		    	str+= answer.answer_text;
+		    	str+="; ";
+		    }
+		    cell2.innerHTML = str;
+		    cell3.innerHTML = "<a href='http://localhost:8080/votings/"+ voting.url + "'> Open </a>";
+		    
+		    var state = voting.enabled == true ? ' active ' : 'closed';
+		    cell4.innerHTML = state;
+
+		  var btn = document.createElement("BUTTON");
+		  var t = document.createTextNode("add");
+		  btn.appendChild(t);  
+		  btn.onclick = function(){
+			  addAnswer(voting.url)
+		  }
+		  cell5.appendChild(btn); 
+		  
+		  var btn_close = document.createElement("button");
+		  var t_close = document.createTextNode("close");
+		  btn_close.appendChild(t_close);  
+		  btn_close.onclick = function(){
+			  close(voting.url)
+		  }
+		  cell6.appendChild(btn_close); 
+		  
+		  var btn_set_active = document.createElement("button");
+		  var t_active = document.createTextNode("Set active");
+		  btn_set_active.appendChild(t_active);  
+		  btn_set_active.onclick = function(){
+			  set_active(voting.url)
+		  }
+		  cell7.appendChild(btn_set_active); 
+		 
+		}
+	});
+}
+function addAnswer(url){
+	var new_answer = prompt("Please enter new answer: ");
+	$.ajax({
+	    url: 'http://localhost:8080/api/'+url+'/add_answer',
+	    type: 'PUT',
+	    data:{ text: new_answer},
+	    success: function(result) {
+	    	update();
+	    }
+	});
+}
+
+function close(url){
+	$.post( "http://localhost:8080/api/"+url+ "/set_voting_active",{active:false}, function( data ) {
+		update();
+	});	 
+}
+function set_active(url){
+	$.post( "http://localhost:8080/api/"+url+ "/set_voting_active",{active:true}, function( data ) {
+		update();
+	});	 
+}
+function newVoting(){
+	var quest = prompt("Please enter new question for voting : ");
+	if(quest){
+		$.post( "http://localhost:8080/api/create_voting",{subject_id:id, question:quest}, function( data ) {
+			update();
+		});	
+	}
+}
+window.onload = function(){
+	update();
+};
+/*]]>*/
+</script>
+
+	<div style="width: 100%;text-align: center;background: aliceblue;">Votings list</div>
+	<table id="table" style="color: black; background: wheat;">
+		<thead>
+			<th>Question</th>
+			<th>Answers</th>
+			<th>Review</th>
+			<th>State</th>
+			<th>Add answer</th>
+			<th>Close</th>
+			<th>Set active</th>
+		</thead>
+		<tbody>
+
+		</tbody>
+	</table>
+</body>
+
+<input type="button" value="New voting" onclick="newVoting();" style="padding: 5px;
+    margin: 10px;
+    margin-left: 5px;
+    width: 110px;"/>
+
+<a href="http://localhost:8080/" style="padding: 10px;width: 100%;background: #343440;">HOME</a>
+</html>
+
